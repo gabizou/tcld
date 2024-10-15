@@ -12,6 +12,10 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
+const (
+	ownerIDFlagName = "owner-id"
+)
+
 type (
 	APIKeyClient struct {
 		client authservice.AuthServiceClient
@@ -85,12 +89,13 @@ func (s *APIKeyClient) createServiceAccountAPIKey(
 	return PrintProto(resp)
 }
 
-func (s *APIKeyClient) listAPIKey() error {
+func (s *APIKeyClient) listAPIKey(ownerId string) error {
 
 	totalRes := &authservice.GetAPIKeysResponse{}
 	pageToken := ""
 	for {
 		resp, err := s.client.GetAPIKeys(s.ctx, &authservice.GetAPIKeysRequest{
+			OwnerId:   ownerId,
 			PageToken: pageToken,
 		})
 		if err != nil {
@@ -258,9 +263,17 @@ func NewAPIKeyCommand(getAPIKeyClientFn GetAPIKeyClientFn) (CommandOut, error) {
 					Name:    "list",
 					Usage:   "List apikeys",
 					Aliases: []string{"l"},
-					Flags:   []cli.Flag{},
+					Flags: []cli.Flag{
+						&cli.StringFlag{
+							Name:    ownerIDFlagName,
+							Usage:   "The owner id of the API Keys to list",
+							Aliases: []string{"o"},
+						},
+					},
 					Action: func(ctx *cli.Context) error {
-						return c.listAPIKey()
+						return c.listAPIKey(
+							ctx.String(ownerIDFlagName),
+						)
 					},
 				},
 				{

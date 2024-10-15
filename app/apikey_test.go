@@ -89,6 +89,17 @@ func (s *APIKeyTestSuite) TestList() {
 	s.NoError(s.RunCmd("apikey", "list"))
 }
 
+func (s *APIKeyTestSuite) TestOwnerIdList() {
+	s.mockAuthService.EXPECT().GetAPIKeys(gomock.Any(), gomock.Any()).Return(&authservice.GetAPIKeysResponse{
+		ApiKeys: []*auth.APIKey{
+			{
+				Id: "test-apikey-id-1",
+			},
+		},
+	}, nil).Times(1)
+	s.NoError(s.RunCmd("apikey", "list", "--owner-id", "ownerID"))
+}
+
 func (s *APIKeyTestSuite) TestCreate() {
 	s.Error(s.RunCmd("apikey", "create"))
 	s.Error(s.RunCmd("apikey", "create", "--name", "test1"))

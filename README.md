@@ -62,6 +62,12 @@ tcld apikey create --name <api-key-name> --description <api-key-description> --d
 ```
 tcld apikey list
 ```
+
+### List API Keys for a specific account (ServiceAccount or User):
+```
+tcld apikey list --owner-id <account-id>
+```
+
 ### Delete an API Key:
 ```
 tcld apikey delete --id <api-key-id>
@@ -75,6 +81,8 @@ tcld apikey enable --id <api-key-id>
 ```
 
 ### Performing an API Key rotation:
+
+#### Current User Specific Rotation
 1. Generate the new API key to rotate to.
 ```
 tcld apikey create --name <api-key-name> --description <api-key-description> --duration <api-key-duration>
@@ -82,6 +90,17 @@ tcld apikey create --name <api-key-name> --description <api-key-description> --d
 2. Update temporal clients to use the new API key and monitor deployments to make sure all old API key usage is gone.
 3. Delete the old API key.
 ``` 
+tcld apikey delete --id <api-key-id>
+```
+
+#### Service Account Specific Rotation
+1. Generate the new API key to rotate to.
+```
+tcld apikey create --name <api-key-name> --description <api-key-description> --duration <api-key-duration> --service-account-id <service-account-id>
+```
+2. Update temporal clients to use the new API key and monitor deployments to make sure all old API key usage is gone.
+3. Delete the old API key.
+```
 tcld apikey delete --id <api-key-id>
 ```
 
