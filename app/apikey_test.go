@@ -79,6 +79,18 @@ func (s *APIKeyTestSuite) TestList() {
 		},
 		NextPageToken: "token1",
 	}, nil).Times(1)
+	s.NoError(s.RunCmd("apikey", "list"))
+}
+
+func (s *APIKeyTestSuite) TestPaginatedList() {
+	s.mockAuthService.EXPECT().GetAPIKeys(gomock.Any(), gomock.Any()).Return(&authservice.GetAPIKeysResponse{
+		ApiKeys: []*auth.APIKey{
+			{
+				Id: "test-apikey-id-1",
+			},
+		},
+		NextPageToken: "token1",
+	}, nil).Times(1)
 	s.mockAuthService.EXPECT().GetAPIKeys(gomock.Any(), gomock.Any()).Return(&authservice.GetAPIKeysResponse{
 		ApiKeys: []*auth.APIKey{
 			{
@@ -87,6 +99,7 @@ func (s *APIKeyTestSuite) TestList() {
 		},
 	}, nil).Times(1)
 	s.NoError(s.RunCmd("apikey", "list"))
+	s.NoError(s.RunCmd("apikey", "list", "--page-token", "token1"))
 }
 
 func (s *APIKeyTestSuite) TestOwnerIdList() {

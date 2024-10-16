@@ -89,24 +89,29 @@ func (s *APIKeyClient) createServiceAccountAPIKey(
 	return PrintProto(resp)
 }
 
-func (s *APIKeyClient) listAPIKey(ownerId string) error {
-
+func (s *APIKeyClient) listAPIKey(ownerId string, pageSize int, pageToken string) error {
+	pageTokenProvided := pageToken != ""
 	totalRes := &authservice.GetAPIKeysResponse{}
-	pageToken := ""
-	for {
-		resp, err := s.client.GetAPIKeys(s.ctx, &authservice.GetAPIKeysRequest{
+
+	getApiKeys := func(pageToken string) (*authservice.GetAPIKeysResponse, error) {
+		return s.client.GetAPIKeys(s.ctx, &authservice.GetAPIKeysRequest{
 			OwnerId:   ownerId,
+			PageSize:  int32(pageSize),
 			PageToken: pageToken,
 		})
+	}
+
+	for {
+		resp, err := getApiKeys(pageToken)
 		if err != nil {
 			return err
 		}
 		totalRes.ApiKeys = append(totalRes.ApiKeys, resp.ApiKeys...)
-		// Check if we should continue paging
-		pageToken = resp.NextPageToken
-		if len(pageToken) == 0 {
+		if len(pageToken) == 0 || pageTokenProvided {
 			return PrintProto(totalRes)
 		}
+		// Check if we should continue paging
+		pageToken = resp.NextPageToken
 	}
 }
 
@@ -269,10 +274,23 @@ func NewAPIKeyCommand(getAPIKeyClientFn GetAPIKeyClientFn) (CommandOut, error) {
 							Usage:   "The owner id of the API Keys to list",
 							Aliases: []string{"o"},
 						},
+						&cli.IntFlag{
+							Name:    pageSizeFlagName,
+							Usage:   "Page size for paging list api keys request",
+							Value:   10,
+							Aliases: []string{"s"},
+						},
+						&cli.StringFlag{
+							Name:    pageTokenFlagName,
+							Usage:   "Page token for paging list api keys request",
+							Aliases: []string{"p"},
+						},
 					},
 					Action: func(ctx *cli.Context) error {
 						return c.listAPIKey(
 							ctx.String(ownerIDFlagName),
+							ctx.Int(pageSizeFlagName),
+							ctx.String(pageTokenFlagName),
 						)
 					},
 				},
